@@ -1,0 +1,68 @@
+name: Deploy Lambda Functions
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+
+            - name: Set up Python
+              uses: actions/setup-python@v2
+              with:
+                  python-version: '3.8'
+            
+            - name: Set up AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    aws-region: ${{ secrets.AWS_REGION }}
+
+            - name: Get list of Lambda functions
+              id: get_lambda_functions
+              run: |
+                functions = $(ls Lambda/src/*.py | sed 's/Lambda\/src\///' | sed 's/\.py//')
+                echo "functions=$functions" >> $GITHUB_ENV
+                echo "functions=$functions"
+
+            - name: Install dependencies for Lambda functions
+              run: |
+                cd Lambda
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt -t ./src/dependencies
+
+            - name: Zip and Deploy Lambda functions
+              run: |
+                cd Lambda
+                for function in $functions; do
+                    echo "Deploying $function"
+
+                    mkdir -p ${function}_package
+                    cp src/${function}.py ${function}_package/
+                    cp -r src/dependencies/* ${function}_package/
+                    cd ${function}_package
+                    zip -r ../${function}.zip .
+
+                    if aws lambda get-function --function-name $function; then
+                        echo "Function $function exists, updating..."
+                        aws lambda update-function-code --function-name $function --zip-file fileb://${function}.zip
+                    else
+                        echo "Function $function does not exist, creating..."
+                        aws lambda create-function \
+                            --function-name $function \
+                            --zip-file fileb://${function}.zip \
+                            --handler ${function}.lambda_handler \
+                            --runtime python3.8 \
+                            --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/my-lambda-execution-role
+                    fi
+                done
+
+
+             
+              
