@@ -27,7 +27,7 @@ jobs:
             - name: Get list of Lambda functions
               id: get_lambda_functions
               run: |
-                functions=$(ls Lambda/src/*.py | sed 's/Lambda\/src\///' | sed 's/\.py//')
+                functions=$(ls Lambda/src/*.py | sed 's/Lambda\/src\///' | sed 's/\.py//' | tr '\n' ' ')
                 echo "functions=$functions" >> $GITHUB_ENV
                 echo "functions=$functions"
 
