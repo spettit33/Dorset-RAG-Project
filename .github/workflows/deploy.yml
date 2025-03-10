@@ -48,6 +48,7 @@ jobs:
                     cp -r src/dependencies/* ${function}_package/
                     cd ${function}_package
                     zip -r ../${function}.zip .
+                    cd ..
 
                     if aws lambda get-function --function-name $function; then
                         echo "Function $function exists, updating..."
