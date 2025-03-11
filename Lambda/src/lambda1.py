@@ -1,6 +1,6 @@
 import boto3
 
-def lambda_handler(event, context):
+def handler(event, context):
     print(event);
     dynamodb = boto3.resource('dyanmodb');
     table = dynamodb.create_table(
@@ -10,4 +10,4 @@ def lambda_handler(event, context):
 
 
 if (__name__ == "__main__"):
-    print(lambda_handler("hi","context"));
+    print(handler("hi","context"));

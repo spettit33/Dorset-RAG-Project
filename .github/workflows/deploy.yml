@@ -1,69 +1,85 @@
 name: Deploy Lambda Functions
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main  # Trigger the deployment when code is pushed to the main branch
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v2
+  deploy:
+    runs-on: ubuntu-latest
 
-            - name: Set up Python
-              uses: actions/setup-python@v2
-              with:
-                  python-version: '3.13'
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Log in to AWS
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Get the list of Lambda functions from a predefined location (e.g., Lambda/src/*.py)
+      - name: Get list of Lambda functions
+        id: get_lambda_functions
+        run: |
+          # Assuming functions are defined by their Python filenames in Lambda/src/*.py
+          functions=$(ls Lambda/src/*.py | sed 's/Lambda\/src\///' | sed 's/\.py//' | tr '\n' ' ')
+          echo "functions=$functions" >> $GITHUB_ENV
+          echo "functions=$functions"
+
+      # Build and push Docker images to Docker Hub (dynamically per function)
+      - name: Build and push Docker images
+        run: |
+          for function in $functions; do
+            echo "Building and pushing Docker image for $function"
+
+            # Dynamically select the Dockerfile based on the function
+            DOCKERFILE="${function}.dockerfile"
             
-            - name: Set up AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
-              with:
-                    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                    aws-region: ${{ secrets.AWS_REGION }}
+            docker build -f $DOCKERFILE -t ${{ secrets.DOCKER_USERNAME }}/$function:latest .
+            docker push ${{ secrets.DOCKER_USERNAME }}/$function:latest
+          done
 
-            - name: Get list of Lambda functions
-              id: get_lambda_functions
-              run: |
-                functions=$(ls Lambda/src/*.py | sed 's/Lambda\/src\///' | sed 's/\.py//' | tr '\n' ' ')
-                echo "functions=$functions" >> $GITHUB_ENV
-                echo "functions=$functions"
+      # Check if each Lambda function exists, and create or update the Lambda functions
+      - name: Deploy Lambda functions
+        run: |
+          for function in $functions; do
+            echo "Deploying Lambda function: $function"
 
-            - name: Install dependencies for Lambda functions
-              run: |
-                cd Lambda
-                python -m pip install --upgrade pip
-                pip install -r requirements.txt -t ./src/dependencies
+            # Define the Docker Hub image URI
+            IMAGE_URI="docker.io/${{ secrets.DOCKER_USERNAME }}/$function:latest"
 
-            - name: Zip and Deploy Lambda functions
-              run: |
-                cd Lambda
-                for function in $functions; do
-                    echo "Deploying $function"
-
-                    mkdir -p ${function}_package
-                    cp src/${function}.py ${function}_package/
-                    cp -r src/dependencies/* ${function}_package/
-                    cd ${function}_package
-                    zip -r ../${function}.zip .
-                    cd ..
-
-                    if aws lambda get-function --function-name $function; then
-                        echo "Function $function exists, updating..."
-                        aws lambda update-function-code --function-name $function --zip-file fileb://${function}.zip
-                    else
-                        echo "Function $function does not exist, creating..."
-                        aws lambda create-function \
-                            --function-name $function \
-                            --zip-file fileb://${function}.zip \
-                            --handler ${function}.lambda_handler \
-                            --runtime python3.8 \
-                            --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/my-lambda-execution-role
-                    fi
-                done
-
-
-             
-              
+            # Check if the Lambda function exists
+            if aws lambda get-function --function-name $function; then
+                echo "Function $function exists, updating..."
+                # Update the Lambda function with the new image from Docker Hub
+                aws lambda update-function-code \
+                    --function-name $function \
+                    --image-uri $IMAGE_URI \
+                    --publish
+            else
+                echo "Function $function does not exist, creating..."
+                # Create a new Lambda function with the image from Docker Hub
+                aws lambda create-function \
+                    --function-name $function \
+                    --package-type Image \
+                    --code ImageUri=$IMAGE_URI \
+                    --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/my-lambda-execution-role \
+                    --publish
+            fi
+          done
