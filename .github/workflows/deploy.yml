@@ -61,6 +61,8 @@ jobs:
             
             # Check if the ECR repository exists
             REPOSITORY_EXISTS=$(aws ecr describe-repositories --repository-names "$function" --region ${{secrets.AWS_REGION}} 2>&1 || true)
+
+            echo "REPOSITORY_EXISTS=$REPOSITORY_EXISTS"
       
             if [[ $REPOSITORY_EXISTS == *"repositoryNotFoundException"* ]]; then
               echo "Repository $function does not exist, creating..."
