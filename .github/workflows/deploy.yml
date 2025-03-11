@@ -53,6 +53,8 @@ jobs:
             DOCKERFILE="${function}.dockerfile"
             
             docker buildx build --platform linux/amd64 --provenance=false -f $DOCKERFILE -t $function:latest .
+
+            docker images
       
             # Log in to AWS ECR
             aws ecr get-login-password --region ${{secrets.AWS_REGION}} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com
