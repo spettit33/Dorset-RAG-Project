@@ -63,7 +63,7 @@ jobs:
             echo "Deploying Lambda function: $function"
 
             # Define the Docker Hub image URI
-            IMAGE_URI="docker.io/${{ secrets.DOCKER_USERNAME }}/$function:latest"
+            IMAGE_URI="docker.io/$function:latest"
 
             # Check if the Lambda function exists
             if aws lambda get-function --function-name $function; then
