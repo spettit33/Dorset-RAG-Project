@@ -48,12 +48,30 @@ jobs:
           cd Lambda
           for function in $functions; do
             echo "Building and pushing Docker image for $function"
-
+      
             # Dynamically select the Dockerfile based on the function
             DOCKERFILE="${function}.dockerfile"
             
-            docker build -f $DOCKERFILE -t ${{ secrets.DOCKER_USERNAME }}/$function:latest .
-            docker push ${{ secrets.DOCKER_USERNAME }}/$function:latest
+            docker buildx build --platform linux/amd64 --provenance=false -f $DOCKERFILE -t $function:latest .
+      
+            # Log in to AWS ECR
+            aws ecr get-login-password --region ${{secrets.AWS_REGION}} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com
+            
+            # Check if the ECR repository exists
+            REPOSITORY_EXISTS=$(aws ecr describe-repositories --repository-names "$function" --region ${{secrets.AWS_REGION}} 2>&1 || true)
+      
+            if [[ $REPOSITORY_EXISTS == *"repositoryNotFoundException"* ]]; then
+              echo "Repository $function does not exist, creating..."
+              # Create the repository if it doesn't exist
+              aws ecr create-repository --repository-name "$function" --region ${{secrets.AWS_REGION}} --image-scanning-configuration scanOnPush=true --image-tag-mutability MUTABLE
+            else
+              echo "Repository $function already exists, skipping creation."
+            fi
+      
+            # Tag the Docker image for ECR
+            docker tag $function:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/$function:latest
+            # Push the Docker image to ECR
+            docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/$function:latest
           done
 
       # Check if each Lambda function exists, and create or update the Lambda functions
@@ -63,7 +81,7 @@ jobs:
             echo "Deploying Lambda function: $function"
 
             # Define the Docker Hub image URI
-            IMAGE_URI="docker.io/$function:latest"
+            IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/$function:latest"
 
             # Check if the Lambda function exists
             if aws lambda get-function --function-name $function; then
