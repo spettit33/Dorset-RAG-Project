@@ -45,6 +45,7 @@ jobs:
       # Build and push Docker images to Docker Hub (dynamically per function)
       - name: Build and push Docker images
         run: |
+          cd Lambda
           for function in $functions; do
             echo "Building and pushing Docker image for $function"
 
