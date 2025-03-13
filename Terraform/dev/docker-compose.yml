@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  terraform:
+    image: hashicorp/terraform:latest
+    env_file:
+      - .env
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace/dev
+    entrypoint: ["terraform"]
+    command: ["plan"]

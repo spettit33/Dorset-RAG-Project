@@ -64,7 +64,7 @@ jobs:
 
             echo "REPOSITORY_EXISTS=$REPOSITORY_EXISTS"
       
-            if [[ $REPOSITORY_EXISTS == *"repositoryNotFoundException"* ]]; then
+            if [[ $REPOSITORY_EXISTS == *"RepositoryNotFoundException"* ]]; then
               echo "Repository $function does not exist, creating..."
               # Create the repository if it doesn't exist
               aws ecr create-repository --repository-name "$function" --region ${{secrets.AWS_REGION}} --image-scanning-configuration scanOnPush=true --image-tag-mutability MUTABLE
