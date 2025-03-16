@@ -5,7 +5,7 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install --target=/var/task -r requirements.txt
 
 # Copy Lambda function
-COPY ./src/lambda2.py ${LAMBDA_TASK_ROOT}
+COPY ./src/embed.py ${LAMBDA_TASK_ROOT}
 
 # Set the Lambda handler
-CMD ["lambda2.handler"]
+CMD ["embed.handler"]
