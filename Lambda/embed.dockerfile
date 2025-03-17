@@ -1,8 +1,15 @@
-FROM public.ecr.aws/lambda/python:3.13
+FROM public.ecr.aws/lambda/python:3.12
 
 # Copy requirements and install dependencies
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
-RUN pip install --target=/var/task -r requirements.txt
+
+RUN pip install \
+--platform manylinux2014_x86_64 \
+--target=/var/task \
+--implementation cp \
+--python-version 3.12 \
+--only-binary=:all: --upgrade \
+-r requirements.txt
 
 # Copy Lambda function
 COPY ./src/embed.py ${LAMBDA_TASK_ROOT}
