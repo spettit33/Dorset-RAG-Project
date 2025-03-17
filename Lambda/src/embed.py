@@ -2,7 +2,7 @@ import boto3
 import json
 import openai
 import os
-from langchain.vectorstores import PineconeVectorStore
+from langchain_pinecone import PineconeVectorStore
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
