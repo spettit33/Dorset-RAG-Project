@@ -13,11 +13,16 @@ def handler(event, context):
 
     s3_client = boto3.resource('s3');
     bucket_name = event['Records'][0]['s3']['bucket']['name'];
+    print(bucket_name);
     file_key = event['Records'][0]['s3']['object']['key'];
+    print(file_key);
     response = s3_client.head_object(Bucket=bucket_name, Key=file_key);
+    print(response);
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=1024);
+    print(embeddings);
     pcVectorStore = PineconeVectorStore.from_existing_index(pcIndexName, embeddings);
+    print(pcVectorStore);
 
     file = s3_client.get_object(Bucket=bucket_name, Key=file_key);
     content = file['Body'].read().decode('utf-8');
