@@ -12,8 +12,19 @@ def handler(event, context):
     pcApiKey = os.environ['PINECONE_API_KEY'];
     pcIndexName = os.environ['PINECONE_INDEX_NAME'];
     print("after envs");
-
-    s3_client = boto3.client('s3');
+    s3_client;
+    try:
+        s3_client = boto3.resource('s3');
+    except Exception as e:
+        print(e);
+    finally:
+        print("S3 resource created successfully")
+    try:
+        s3_client = boto3.client('s3');
+    except Exception as e:
+        print(e);
+    finally:
+        print("S3 resource created successfully")
     bucket_name = event['Records'][0]['s3']['bucket']['name'];
     print(bucket_name);
     file_key = event['Records'][0]['s3']['object']['key'];
