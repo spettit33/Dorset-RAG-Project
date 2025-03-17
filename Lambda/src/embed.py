@@ -13,7 +13,7 @@ def handler(event, context):
     pcIndexName = os.environ['PINECONE_INDEX_NAME'];
     print("after envs");
 
-    s3_client = boto3.resource('s3');
+    s3_client = boto3.client('s3');
     bucket_name = event['Records'][0]['s3']['bucket']['name'];
     print(bucket_name);
     file_key = event['Records'][0]['s3']['object']['key'];
