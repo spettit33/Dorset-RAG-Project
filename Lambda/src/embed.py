@@ -3,7 +3,7 @@ import json
 import openai
 import os
 from langchain_pinecone import PineconeVectorStore
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 def handler(event, context):
