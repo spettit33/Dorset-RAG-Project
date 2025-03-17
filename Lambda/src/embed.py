@@ -4,12 +4,14 @@ import openai
 import os
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def handler(event, context):
+    print("before envs")
     openai.api_key = os.environ['OPENAI_API_KEY'];
     pcApiKey = os.environ['PINECONE_API_KEY'];
     pcIndexName = os.environ['PINECONE_INDEX_NAME'];
+    print("after envs");
 
     s3_client = boto3.resource('s3');
     bucket_name = event['Records'][0]['s3']['bucket']['name'];
