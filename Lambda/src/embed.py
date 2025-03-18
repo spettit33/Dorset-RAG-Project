@@ -45,7 +45,7 @@ def handler(event, context):
     for i, chunk in enumerate(chunks):
         documents.append(Document(content=chunk, metadata=metadata, index=i));
     
-    uuids = [str(uuid4()) for i in range len(documents)];
+    uuids = [str(uuid4()) for i in range(len(documents))];
 
     pcVectorStore.add_documents(documents, ids = uuids);
 
