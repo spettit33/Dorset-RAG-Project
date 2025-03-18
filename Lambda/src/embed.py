@@ -35,9 +35,9 @@ def handler(event, context):
     content = file['Body'].read().decode('utf-8');
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50);
-    chunks = text_splitter.split_text(content);
+    chunks = text_splitter.split_documents(content);
 
-    metadata = {"Document": file_key, "Person": response['Metadata']['person'], "role": response['Metadata']['role'], "date": response['Metadata']['date']};
+    metadata = {"Document": file_key, "person": response['Metadata']['person'], "role": response['Metadata']['role'], "date": response['Metadata']['date']};
 
     for i, chunk in enumerate(chunks):
         chunk.metadata = metadata;
