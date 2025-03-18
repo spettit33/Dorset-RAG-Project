@@ -1,17 +1,14 @@
 import boto3
 import json
-import openai
 import os
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from uuid import uuid4
 
 def handler(event, context):
     print("before envs")
-    openai.api_key = os.environ['OPENAI_API_KEY'];
     pcApiKey = os.environ['PINECONE_API_KEY'];
     pcIndexName = os.environ['PINECONE_INDEX_NAME'];
     hfEmbeddingApiKey = os.environ['HF_API_KEY']
