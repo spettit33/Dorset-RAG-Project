@@ -45,7 +45,7 @@ jobs:
             # Dynamically select the Dockerfile based on the function
             DOCKERFILE="${function}.dockerfile"
             
-            docker buildx build --platform linux/amd64 --provenance=false -f $DOCKERFILE -t $function:latest --load .
+            docker buildx build --platform linux/amd64 --provenance=false -f $DOCKERFILE -t $function:latest .
 
             docker images
       
