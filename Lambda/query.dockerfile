@@ -10,6 +10,7 @@ RUN pip install \
 --target=/var/task \
 --implementation cp \
 --python-version 3.12 \
+--no-cache-dir \
 --only-binary=:all: --upgrade \
 -r requirements.txt
 
