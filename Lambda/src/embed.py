@@ -33,7 +33,6 @@ def handler(event, context):
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
     print(embeddings);
     pcVectorStore = PineconeVectorStore.from_existing_index(pcIndexName, embeddings);
-    print(pcVectorStore);
 
     file = s3_client.get_object(Bucket=bucket_name, Key=file_key);
     content = file['Body'].read().decode('utf-8');
