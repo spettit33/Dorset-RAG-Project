@@ -42,10 +42,14 @@ def handler(event, context):
     metadata = {"Document": file_key, "person": response['Metadata']['person'], "role": response['Metadata']['role'], "date": response['Metadata']['date']};
     documents = [];
 
+    print(chunks);
+
     for i, chunk in enumerate(chunks):
         documents.append(Document(page_content=chunk, metadata=metadata, index=i));
     
     uuids = [str(uuid4()) for i in range(len(documents))];
+
+    print(documents);
 
     pcVectorStore.add_documents(documents, ids = uuids);
 
