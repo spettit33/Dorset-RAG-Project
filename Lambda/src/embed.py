@@ -17,7 +17,7 @@ def handler(event, context):
     except Exception as e:
         print(e);
     else:
-        print(s3_client);
+        print("all good");
     print(s3_client);
     bucket_name = event['Records'][0]['s3']['bucket']['name'];
     print(bucket_name);
@@ -37,7 +37,7 @@ def handler(event, context):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50);
     chunks = text_splitter.split_text(content);
 
-    metadata = {"Document": file_key, "Person": response['Metadata']['Person'], "Role": response['Metadata']['Role'], "Date": response['Metadata']['Date']};
+    metadata = {"Document": file_key, "Person": response['Metadata']['person'], "role": response['Metadata']['role'], "date": response['Metadata']['date']};
 
     for i, chunk in enumerate(chunks):
         chunk.metadata = metadata;
