@@ -3,6 +3,8 @@ FROM public.ecr.aws/lambda/python:3.12
 # Copy requirements and install dependencies
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
+RUN pip cache purge
+
 RUN pip install \
 --platform manylinux2014_x86_64 \
 --target=/var/task \
