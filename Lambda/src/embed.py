@@ -5,6 +5,8 @@ import os
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+from uuid import uuid4
 
 def handler(event, context):
     print("before envs")
@@ -35,14 +37,17 @@ def handler(event, context):
     content = file['Body'].read().decode('utf-8');
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50);
-    chunks = text_splitter.split_documents(content);
+    chunks = text_splitter.split_text(content);
 
     metadata = {"Document": file_key, "person": response['Metadata']['person'], "role": response['Metadata']['role'], "date": response['Metadata']['date']};
+    documents = [];
 
     for i, chunk in enumerate(chunks):
-        chunk.metadata = metadata;
+        documents.append(Document(content=chunk, metadata=metadata, index=i));
+    
+    uuids = [str(uuid4()) for i in range len(documents)];
 
-    pcVectorStore.add_documents(chunks);
+    pcVectorStore.add_documents(documents, ids = uuids);
 
     return {
         'statusCode': 200,
