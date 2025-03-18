@@ -2,6 +2,7 @@ import boto3
 import json
 import openai
 import os
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -13,6 +14,7 @@ def handler(event, context):
     openai.api_key = os.environ['OPENAI_API_KEY'];
     pcApiKey = os.environ['PINECONE_API_KEY'];
     pcIndexName = os.environ['PINECONE_INDEX_NAME'];
+    hfEmbeddingApiKey = os.environ['HF_API_KEY']
     print("after envs");
     try:
         s3_client = boto3.client('s3');
@@ -28,7 +30,7 @@ def handler(event, context):
     response = s3_client.head_object(Bucket=bucket_name, Key=file_key);
     print(response);
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=1024);
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
     print(embeddings);
     pcVectorStore = PineconeVectorStore.from_existing_index(pcIndexName, embeddings);
     print(pcVectorStore);
